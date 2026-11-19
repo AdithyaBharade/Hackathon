@@ -1,5 +1,7 @@
 # Algohire Hackathon (21 Nov 2026)
 
+> **Coding rules:** see [rules.md](rules.md). AI tools pick them up via `CLAUDE.md` and `.cursor/rules/`.
+
 | App | Path | Port | Stack |
 |-----|------|------|-------|
 | Frontend | `fe/` | 5173 | Vite + React 19 + TS, React Router 7, TanStack Query, Zustand, React Hook Form + Zod, Tailwind 4, shadcn/ui (all), AG Grid, axios |

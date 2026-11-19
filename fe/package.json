@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:validators": "node scripts/sync-validators.mjs",
+    "predev": "npm run sync:validators",
+    "prebuild": "npm run sync:validators"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

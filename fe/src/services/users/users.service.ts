@@ -1,11 +1,12 @@
 import { api } from "@/services/api/client";
 import { ENDPOINTS } from "@/services/api/endpoints";
-import type { ApiResponse } from "@/types/api";
+import type { ApiResponse, Paginated, PaginationParams } from "@/types/api";
 import type { User } from "@/types/user";
 import type { UserInput } from "@/schemas/user.schema";
 
 export const usersService = {
-  getAll: async () => (await api.get<ApiResponse<User[]>>(ENDPOINTS.users.root)).data.data,
+  getAll: async (params: PaginationParams) =>
+    (await api.get<ApiResponse<Paginated<User>>>(ENDPOINTS.users.root, { params })).data.data,
   getById: async (id: string) =>
     (await api.get<ApiResponse<User>>(ENDPOINTS.users.byId(id))).data.data,
   update: async (id: string, body: Partial<UserInput>) =>

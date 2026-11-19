@@ -92,7 +92,7 @@
           "name": "List",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/users"
+            "url": "{{baseUrl}}/users?page=1&limit=20&search="
           }
         },
         {

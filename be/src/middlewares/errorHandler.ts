@@ -11,8 +11,12 @@ export const errorHandler = (err: unknown, req: Request, res: Response, _next: N
   if (err instanceof ApiError)
     return res.status(err.statusCode).json({ success: false, message: err.message });
 
-  if (err instanceof ZodError)
-    return res.status(400).json({ success: false, message: "Validation failed", errors: err.issues });
+  if (err instanceof ZodError) {
+    // `message` is the first human-readable error (shown as a toast on the FE),
+    // `errors` lists every field so forms can highlight them.
+    const errors = err.issues.map((i) => ({ field: i.path.join(".") || null, message: i.message }));
+    return res.status(400).json({ success: false, message: errors[0]?.message ?? "Validation failed", errors });
+  }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === "P2002") return res.status(409).json({ success: false, message: "Record already exists" });

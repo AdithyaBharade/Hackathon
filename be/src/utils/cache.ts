@@ -17,5 +17,20 @@ export async function cached<T>(key: string, ttlSeconds: number, loader: () => P
 }
 
 export async function invalidate(...keys: string[]) {
-  if (isRedisReady()) await redis.del(...keys).catch(() => {});
+  if (isRedisReady() && keys.length) await redis.del(...keys).catch(() => {});
+}
+
+/** Delete every key starting with prefix (uses SCAN, safe for production). */
+export async function invalidatePrefix(prefix: string) {
+  if (!isRedisReady()) return;
+  try {
+    let cursor = "0";
+    do {
+      const [next, keys] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100);
+      cursor = next;
+      if (keys.length) await redis.del(...keys);
+    } while (cursor !== "0");
+  } catch (err) {
+    logger.warn({ err, prefix }, "cache invalidatePrefix failed");
+  }
 }

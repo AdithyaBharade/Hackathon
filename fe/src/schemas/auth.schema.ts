@@ -1,13 +1,19 @@
 import { z } from "zod";
+import { email, password, personName } from "./fields";
 
 export const loginSchema = z.object({
-  email: z.email("Enter a valid email"),
-  password: z.string().min(6, "Min 6 characters"),
+  email: email(),
+  password: z.string().min(1, "Password is required"),
 });
 
-export const registerSchema = loginSchema.extend({
-  name: z.string().min(1, "Name is required"),
+export const registerSchema = z.object({
+  name: personName(),
+  email: email(),
+  password: password(),
 });
 
-export type LoginInput = z.infer<typeof loginSchema>;
-export type RegisterInput = z.infer<typeof registerSchema>;
+// Forms work with the raw input; the API receives the cleaned output
+export type LoginFormValues = z.input<typeof loginSchema>;
+export type LoginInput = z.output<typeof loginSchema>;
+export type RegisterFormValues = z.input<typeof registerSchema>;
+export type RegisterInput = z.output<typeof registerSchema>;

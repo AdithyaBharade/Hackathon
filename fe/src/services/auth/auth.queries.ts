@@ -14,9 +14,11 @@ const useOnAuthSuccess = () => {
   };
 };
 
-export const useLogin = () => useMutation({ mutationFn: authService.login, onSuccess: useOnAuthSuccess() });
+export const useLogin = () =>
+  useMutation({ mutationFn: authService.login, onSuccess: useOnAuthSuccess(), meta: { successMessage: "Welcome back!" } });
 
-export const useRegister = () => useMutation({ mutationFn: authService.register, onSuccess: useOnAuthSuccess() });
+export const useRegister = () =>
+  useMutation({ mutationFn: authService.register, onSuccess: useOnAuthSuccess(), meta: { successMessage: "Account created" } });
 
 /** Validates the cookie session on load (refreshes automatically via the axios interceptor). */
 export const useMe = (enabled: boolean) => {
@@ -34,6 +36,7 @@ export const useLogout = () => {
   const navigate = useNavigate();
   return useMutation({
     mutationFn: authService.logout,
+    meta: { silentError: true }, // always log out locally, even if the API call fails
     onSettled: () => {
       clear();
       qc.clear();

@@ -1,0 +1,7 @@
+---
+description: Project rules for the Algohire hackathon codebase
+alwaysApply: true
+---
+
+Follow every rule in @rules.md for all changes. The `users` feature in fe/ and be/ is the reference implementation.
+See @CLAUDE.md for commands and environment notes.

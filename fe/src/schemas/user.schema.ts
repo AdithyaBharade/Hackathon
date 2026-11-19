@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { email, personName } from "./fields";
 
 export const userSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.email("Enter a valid email"),
+  name: personName(),
+  email: email(),
 });
 
-export type UserInput = z.infer<typeof userSchema>;
+export type UserFormValues = z.input<typeof userSchema>;
+export type UserInput = z.output<typeof userSchema>;
