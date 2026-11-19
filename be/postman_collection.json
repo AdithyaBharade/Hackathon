@@ -1,0 +1,39 @@
+{
+  "info": { "name": "Algohire Hackathon API", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000/api" },
+    { "key": "token", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "item": [
+    { "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/health" } },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('token', pm.response.json().data.token);"] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/auth/register", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Demo\",\n  \"email\": \"demo@example.com\",\n  \"password\": \"secret123\"\n}" } }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('token', pm.response.json().data.token);"] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/auth/login", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"secret123\"\n}" } }
+        },
+        { "name": "Me", "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" } }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{baseUrl}}/users" } },
+        { "name": "Get by id", "request": { "method": "GET", "url": "{{baseUrl}}/users/:id" } },
+        { "name": "Update", "request": { "method": "PUT", "url": "{{baseUrl}}/users/:id", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"New name\"\n}" } } },
+        { "name": "Delete", "request": { "method": "DELETE", "url": "{{baseUrl}}/users/:id" } }
+      ]
+    }
+  ]
+}
