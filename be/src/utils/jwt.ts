@@ -1,4 +1,4 @@
-import jwt, { type SignOptions } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 
 export interface JwtPayload {
@@ -6,7 +6,10 @@ export interface JwtPayload {
   role: "USER" | "ADMIN";
 }
 
-export const signToken = (payload: JwtPayload) =>
-  jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"] });
+export const signAccessToken = (payload: JwtPayload) =>
+  jwt.sign(payload, env.JWT_ACCESS_SECRET, { expiresIn: `${env.ACCESS_TOKEN_TTL_MIN}m` });
 
-export const verifyToken = (token: string) => jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+export const verifyAccessToken = (token: string) => {
+  const { sub, role } = jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
+  return { sub, role };
+};

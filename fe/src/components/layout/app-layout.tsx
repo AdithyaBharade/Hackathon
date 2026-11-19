@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/auth.store";
+import { useLogout } from "@/services/auth/auth.queries";
 import { APP_NAME } from "@/constants";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +11,8 @@ const nav = [
 ];
 
 export function AppLayout() {
-  const { user, logout } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const logout = useLogout();
   return (
     <div className="flex min-h-svh flex-col">
       <header className="border-b">
@@ -26,7 +28,7 @@ export function AppLayout() {
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
             <span className="text-muted-foreground">{user?.email}</span>
-            <Button variant="outline" size="sm" onClick={logout}>Logout</Button>
+            <Button variant="outline" size="sm" disabled={logout.isPending} onClick={() => logout.mutate()}>Logout</Button>
           </div>
         </div>
       </header>

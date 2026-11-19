@@ -6,8 +6,11 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   DATABASE_URL: z.string().min(1),
-  JWT_SECRET: z.string().min(16),
-  JWT_EXPIRES_IN: z.string().default("7d"),
+  JWT_ACCESS_SECRET: z.string().min(16),
+  ACCESS_TOKEN_TTL_MIN: z.coerce.number().default(15),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(7),
+  COOKIE_SAMESITE: z.enum(["lax", "strict", "none"]).default("lax"),
+  COOKIE_DOMAIN: z.string().optional().transform((v) => v || undefined),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
 });

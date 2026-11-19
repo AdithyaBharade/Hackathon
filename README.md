@@ -32,6 +32,19 @@ be/src
 ├─ server.ts      API entry       worker.ts  worker entry
 ```
 
+## Auth (httpOnly cookies)
+| Cookie | Lifetime | Path | Content |
+|---|---|---|---|
+| `access_token` | 15 min | `/` | JWT `{ sub, role }` |
+| `refresh_token` | 7 days | `/api/auth` | random opaque token; only its SHA-256 hash is stored in `refresh_tokens` |
+
+- `POST /api/auth/register`, `/login` set both cookies; body returns `{ user }` only
+- `POST /api/auth/refresh` rotates: old refresh token revoked, new pair issued. Reusing a revoked token revokes **all** sessions of that user (theft detection)
+- `POST /api/auth/logout` revokes the current refresh token + clears cookies; `/logout-all` revokes every session
+- `authenticate` middleware reads the `access_token` cookie (Bearer header accepted as fallback)
+- FE: axios `withCredentials: true`; on a 401 the interceptor calls `/auth/refresh` once (shared by concurrent requests) and retries; if refresh fails the user is logged out. Zustand only stores the user profile, never tokens.
+- Prod on different sites (e.g. app.x.com + api.y.com): set `COOKIE_SAMESITE=none` (forces `Secure`, needs HTTPS). Same parent domain: set `COOKIE_DOMAIN=.x.com`.
+
 ## Frontend
 ```
 fe/src

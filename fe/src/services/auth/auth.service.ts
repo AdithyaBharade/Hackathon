@@ -11,4 +11,10 @@ export const authService = {
   register: async (body: RegisterInput) =>
     (await api.post<ApiResponse<AuthResponse>>(ENDPOINTS.auth.register, body)).data.data,
   me: async () => (await api.get<ApiResponse<User>>(ENDPOINTS.auth.me)).data.data,
+  logout: async () => {
+    await api.post(ENDPOINTS.auth.logout);
+  },
+  logoutAll: async () => {
+    await api.post(ENDPOINTS.auth.logoutAll);
+  },
 };

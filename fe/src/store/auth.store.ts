@@ -2,21 +2,23 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types/user";
 
+/**
+ * Tokens live in httpOnly cookies (not readable by JS).
+ * We only keep the user profile here so the UI knows who is logged in.
+ */
 interface AuthState {
   user: User | null;
-  token: string | null;
-  setAuth: (user: User, token: string) => void;
-  logout: () => void;
+  setUser: (user: User) => void;
+  clear: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
-      setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      setUser: (user) => set({ user }),
+      clear: () => set({ user: null }),
     }),
-    { name: "auth" }
+    { name: "auth-user" }
   )
 );
