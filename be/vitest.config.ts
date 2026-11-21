@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
  * the guarantees under test - row locks, unique keys, sequences - live in the database.
  * Override TEST_DATABASE_URL / TEST_REDIS_URL to point elsewhere.
  */
-const databaseUrl = process.env.TEST_DATABASE_URL ?? "postgresql://certiflow:certiflow@localhost:5432/certiflow_test";
+const databaseUrl = process.env.TEST_DATABASE_URL ?? "postgresql://certiflow:certiflow@localhost:5433/certiflow_test";
 
 export default defineConfig({
   test: {
@@ -19,7 +19,7 @@ export default defineConfig({
       LOG_LEVEL: "warn",
       DATABASE_URL: databaseUrl,
       DIRECT_URL: databaseUrl,
-      REDIS_URL: process.env.TEST_REDIS_URL ?? "redis://localhost:6379/1",
+      REDIS_URL: process.env.TEST_REDIS_URL ?? "redis://localhost:6380/1",
       JWT_ACCESS_SECRET: "test-access-secret-0123456789",
       CERT_LINK_SECRET: "test-link-secret-0123456789",
       STORAGE_DIR: "./storage-test",

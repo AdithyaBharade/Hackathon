@@ -1,31 +1,106 @@
+# CertiFlow - the whole system with one command:   docker compose up --build
+#
+#   web (nginx, :5173) ──▶ api (:8000) ──▶ postgres
+#                            │   ▲            ▲
+#                     outbox │   │ SSE        │
+#                            ▼   │            │
+#                          redis (BullMQ + pub/sub) ◀──▶ worker ×2 ──▶ whatsapp-mock (:8100)
+#
+# The values below are for local use only. Production secrets come from a secret store (see DEPLOYMENT.md).
+
+x-backend-env: &backend-env
+  NODE_ENV: production
+  LOG_LEVEL: info
+  DATABASE_URL: postgresql://certiflow:certiflow@postgres:5432/certiflow
+  DIRECT_URL: postgresql://certiflow:certiflow@postgres:5432/certiflow
+  REDIS_URL: redis://redis:6379
+  JWT_ACCESS_SECRET: local-only-access-secret-change-me-0123456789
+  CERT_LINK_SECRET: local-only-link-secret-change-me-0123456789
+  CORS_ORIGIN: http://localhost:5173
+  # Cookies over plain http on localhost
+  COOKIE_SAMESITE: lax
+  PUBLIC_API_URL: http://localhost:8000/api
+  PUBLIC_WEB_URL: http://localhost:5173
+  STORAGE_DIR: /app/storage
+  WHATSAPP_API_URL: http://whatsapp-mock:8100
+  WHATSAPP_TIMEOUT_MS: "3000"
+  WHATSAPP_RETRY_BASE_MS: "1000"
+  WHATSAPP_RETRY_MAX_MS: "30000"
+  DISTRICT_QUORUM: "2"
+  BIG_BATCH_THRESHOLD: "50"
+  # Demo pace: a batch is "stuck" after 2 minutes (production: 2880 = 48 hours)
+  STUCK_AFTER_MINUTES: "2"
+  STUCK_CHECK_EVERY_SECONDS: "15"
+
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: certiflow
+      POSTGRES_PASSWORD: certiflow
+      POSTGRES_DB: certiflow
+    ports: ["5433:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U certiflow -d certiflow"]
+      interval: 3s
+      retries: 20
+
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
+    # AOF persistence: queued jobs survive a Redis restart
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["6380:6379"]
+    volumes: [redisdata:/data]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      retries: 5
+      interval: 3s
+      retries: 20
+
+  # One-shot: apply migrations, then load demo data (skipped if already there)
+  migrate:
+    build: ./be
+    command: ["sh", "-c", "npx prisma migrate deploy && node dist/src/scripts/seed.js"]
+    environment: *backend-env
+    depends_on:
+      postgres: { condition: service_healthy }
 
   api:
     build: ./be
-    env_file: ./be/.env
-    environment:
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: production
+    environment: *backend-env
     ports: ["8000:8000"]
+    volumes: [certificates:/app/storage]
     depends_on:
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/api/health"]
+      interval: 5s
+      retries: 20
 
   worker:
     build: ./be
     command: ["node", "dist/src/worker.js"]
-    env_file: ./be/.env
-    environment:
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: production
+    environment: *backend-env
+    volumes: [certificates:/app/storage]
+    deploy:
+      replicas: 2 # scale out with: docker compose up --scale worker=4
     depends_on:
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+
+  # Stand-in for the WhatsApp Business API: fails 20% and times out 10% of the time
+  whatsapp-mock:
+    build: ./be
+    command: ["node", "dist/src/mock/whatsapp-provider.js"]
+    environment:
+      PORT: "8100"
+      MOCK_FAIL_RATE: "0.2"
+      MOCK_TIMEOUT_RATE: "0.1"
+      MOCK_HANG_MS: "10000"
+    ports: ["8100:8100"]
 
   web:
     build:
@@ -34,3 +109,22 @@ services:
         VITE_API_URL: http://localhost:8000/api
     ports: ["5173:80"]
     depends_on: [api]
+
+  # docker compose --profile test run --rm tests
+  tests:
+    profiles: ["test"]
+    build:
+      context: ./be
+      target: build
+    command: ["npx", "vitest", "run"]
+    environment:
+      TEST_DATABASE_URL: postgresql://certiflow:certiflow@postgres:5432/certiflow_test
+      TEST_REDIS_URL: redis://redis:6379/1
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  redisdata:
+  certificates:
