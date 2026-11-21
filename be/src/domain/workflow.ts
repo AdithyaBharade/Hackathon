@@ -41,3 +41,9 @@ export const statusAfterApproval = (stage: Stage, candidateCount: number): Batch
 
 /** Centre may edit candidates and (re)submit only in these states. */
 export const EDITABLE_STATUSES: BatchStatus[] = ["DRAFT", "SENT_BACK"];
+
+export const STAGE_ORDER: Stage[] = ["DISTRICT", "QUALITY", "STATE"];
+
+/** The stage a reviewer role acts at (CENTRE has none; it sorts before every stage). */
+export const stageForRole = (role: Role): Stage | "NONE" =>
+  role === "DISTRICT_OFFICER" ? "DISTRICT" : role === "QUALITY" ? "QUALITY" : role === "STATE" ? "STATE" : "NONE";

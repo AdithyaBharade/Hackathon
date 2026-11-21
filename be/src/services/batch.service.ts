@@ -14,6 +14,8 @@ import {
   requiredApprovals,
   roleForStage,
   stageOf,
+  STAGE_ORDER,
+  stageForRole,
   statusAfterApproval,
 } from "../domain/workflow.js";
 import { maskMobile } from "../validators/fields.js";
@@ -167,7 +169,8 @@ export const batchService = {
   async uploadCandidates(ctx: ActionContext, id: string, file: { buffer: Buffer; originalname: string }) {
     const parsed = await parseCandidateSheet(file.buffer, file.originalname, env.MAX_CANDIDATES_PER_BATCH);
     if (!parsed.ok) {
-      const rows = new Set(parsed.errors.map((e) => e.row).filter((r) => r > 0)).size;
+      // Row 1 is the header; header/file problems have a single, specific message
+      const rows = new Set(parsed.errors.map((e) => e.row).filter((r) => r > 1)).size;
       throw new ApiError(400, rows ? `${rows} row(s) have problems. Nothing was saved.` : parsed.errors[0]!.message, parsed.errors);
     }
 
@@ -247,7 +250,13 @@ export const batchService = {
       const batch = await lockBatch(tx, ctx, id);
       const stage = stageOf(batch.status);
       if (!stage) throw new ApiError(409, `Batch is ${batch.status.toLowerCase().replace("_", " ")} and not awaiting a decision`);
-      if (roleForStage[stage] !== ctx.user.role) throw new ApiError(403, `Only the ${stage.toLowerCase()} stage reviewers can decide now`);
+      if (roleForStage[stage] !== ctx.user.role) {
+        // A reviewer whose stage is already complete is "too late", not "not allowed"
+        const mine = stageForRole(ctx.user.role);
+        const passed = mine !== "NONE" && STAGE_ORDER.indexOf(mine) < STAGE_ORDER.indexOf(stage);
+        if (passed) throw new ApiError(409, "This batch has already moved past your stage");
+        throw new ApiError(403, `Only ${stage.toLowerCase()} reviewers can decide at this stage`);
+      }
       if (input.version !== batch.version)
         throw new ApiError(409, "The batch was changed since you opened it. Reload and review it again.");
 

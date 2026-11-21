@@ -31,7 +31,7 @@ export const deliveryQueue = new Queue<DeliveryJob>(QUEUES.delivery, {
   connection,
   defaultJobOptions: {
     attempts: env.WHATSAPP_MAX_ATTEMPTS,
-    backoff: { type: "exponential", delay: env.WHATSAPP_RETRY_BASE_MS, jitter: 0.5 },
+    backoff: { type: "capped-exponential" },
     removeOnComplete: 5000,
     removeOnFail: 10000,
   },
@@ -56,4 +56,11 @@ export const queueStats = async () => {
     deliveryQueue.getJobCounts("waiting", "active", "delayed", "failed"),
   ]);
   return { issuance, delivery };
+};
+
+/** Exponential backoff with full jitter, capped. Jitter spreads retries out so a
+ *  recovering provider isn't hit by every queued message at the same instant. */
+export const cappedBackoff = (attemptsMade: number) => {
+  const exp = Math.min(env.WHATSAPP_RETRY_MAX_MS, env.WHATSAPP_RETRY_BASE_MS * 2 ** Math.max(0, attemptsMade - 1));
+  return Math.round(exp / 2 + Math.random() * (exp / 2));
 };

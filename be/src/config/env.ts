@@ -36,6 +36,8 @@ const schema = z.object({
   WHATSAPP_TIMEOUT_MS: z.coerce.number().int().default(3000),
   WHATSAPP_MAX_ATTEMPTS: z.coerce.number().int().default(8),
   WHATSAPP_RETRY_BASE_MS: z.coerce.number().int().default(2000),
+  /** Backoff is exponential but capped, so deliveries resume soon after an outage ends */
+  WHATSAPP_RETRY_MAX_MS: z.coerce.number().int().default(300_000),
   WORKER_CONCURRENCY: z.coerce.number().int().default(10),
 });
 
