@@ -79,6 +79,7 @@ export function CertificatesTable() {
   return (
     <>
       <PageHeader
+        back={{ to: "/", label: "Back to batches" }}
         title="Certificates"
         description={isState ? "Everything issued. Revoke a certificate that should never have been issued." : "Certificates issued to your candidates."}
         actions={

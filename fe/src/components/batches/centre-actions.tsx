@@ -1,12 +1,21 @@
 import { useRef, useState } from "react";
-import { FileSpreadsheetIcon, SendIcon, UploadIcon } from "lucide-react";
+import { DownloadIcon, FileSpreadsheetIcon, SendIcon, UploadIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiRequestError } from "@/services/api/client";
 import { useSubmitBatch, useUploadCandidates } from "@/services/batches/batches.queries";
 import { notify } from "@/lib/notify";
 import type { BatchDetail, RowError } from "@/types/batch";
+
+/** Served from fe/public/samples (copies of be/samples, used by the tests too). */
+const SAMPLES = [
+  { file: "candidates-template.csv", label: "Blank template (2 example rows)" },
+  { file: "candidates-valid-12.csv", label: "Valid batch: 12 candidates" },
+  { file: "candidates-big-60.csv", label: "Large batch: 60 candidates (quality review)" },
+  { file: "candidates-with-errors.csv", label: "With mistakes: see the row errors" },
+];
 
 /** Upload the spreadsheet (all rows or none) and send for approval. */
 export function CentreActions({ batch }: { batch: BatchDetail }) {
@@ -50,6 +59,18 @@ export function CentreActions({ batch }: { batch: BatchDetail }) {
           <Button className="w-full sm:w-auto" disabled={submit.isPending || batch.candidateCount === 0} onClick={() => submit.mutate(batch.id)}>
             <SendIcon className="size-4" /> {submit.isPending ? "Sending..." : resend ? "Resend for approval" : "Send for approval"}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" className="w-full sm:ml-auto sm:w-auto" />}>
+              <DownloadIcon className="size-4" /> Download sample CSV
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {SAMPLES.map((s) => (
+                <DropdownMenuItem key={s.file} render={<a href={`/samples/${s.file}`} download={s.file} />}>
+                  {s.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         {resend && (
           <p className="text-sm text-muted-foreground">

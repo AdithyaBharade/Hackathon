@@ -1,13 +1,12 @@
 import { useMemo } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
 import { format } from "date-fns";
-import { ArrowLeftIcon, InfoIcon } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import { DataGrid } from "@/components/common/data-grid";
 import { PageHeader } from "@/components/common/page-header";
 import { ErrorState, PageLoader } from "@/components/common/states";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuthStore } from "@/store/auth.store";
@@ -59,16 +58,10 @@ export function BatchDetailView() {
   return (
     <>
       <PageHeader
+        back={{ to: "/", label: "Back to batches" }}
         title={batch.courseName}
         description={`${batch.code} · ${batch.centre.name} · ${batch.district.name} · ${batch.candidateCount} candidates`}
-        actions={
-          <div className="flex items-center gap-2">
-            <BatchStatusBadge status={batch.status} />
-            <Button variant="ghost" size="sm" render={<Link to="/" />}>
-              <ArrowLeftIcon className="size-4" /> Back
-            </Button>
-          </div>
-        }
+        actions={<BatchStatusBadge status={batch.status} />}
       />
 
       <Card>

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { format } from "date-fns";
-import { SearchIcon, ShieldAlertIcon, ShieldCheckIcon, ShieldQuestionIcon } from "lucide-react";
+import { ArrowLeftIcon, SearchIcon, ShieldAlertIcon, ShieldCheckIcon, ShieldQuestionIcon } from "lucide-react";
+import { useAuthStore } from "@/store/auth.store";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useVerify } from "@/services/certificates/certificates.queries";
-import { APP_NAME } from "@/constants";
 
 /** Public: for employers and anyone holding a certificate. No login. */
 export function VerifyPage() {
@@ -16,9 +16,15 @@ export function VerifyPage() {
   const navigate = useNavigate();
   const [input, setInput] = useState(number);
   const { data, isFetching, error } = useVerify(number.toUpperCase());
+  const signedIn = useAuthStore((s) => !!s.user);
 
   return (
     <div className="relative flex min-h-svh flex-col items-center bg-background p-4 pt-16">
+      <div className="absolute top-4 left-4">
+        <Button variant="ghost" size="sm" render={<Link to={signedIn ? "/" : "/login"} />}>
+          <ArrowLeftIcon className="size-4" /> {signedIn ? "Back to batches" : "Staff login"}
+        </Button>
+      </div>
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
@@ -99,11 +105,6 @@ export function VerifyPage() {
             </CardContent>
           </Card>
         )}
-        <p className="text-center text-sm text-muted-foreground">
-          <Link to="/login" className="underline">
-            {APP_NAME} staff login
-          </Link>
-        </p>
       </div>
     </div>
   );
