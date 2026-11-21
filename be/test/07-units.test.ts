@@ -28,6 +28,15 @@ describe("spreadsheet parsing", () => {
     if (r.ok) expect(r.rows[0]).toMatchObject({ name: "Asha Patil", mobile: "9876543210", grade: "A+", rowNumber: 2 });
   });
 
+  it("accepts the 2-digit years Excel writes when it re-saves a CSV", async () => {
+    const r = await csv("Name,Mobile,Date of Birth,Grade\nAsha Patil,9876543210,01/01/01,A\nRavi Kumar,9876543211,5.3.98,B\n");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.rows[0]!.dateOfBirth.toISOString().slice(0, 10)).toBe("2001-01-01");
+      expect(r.rows[1]!.dateOfBirth.toISOString().slice(0, 10)).toBe("1998-03-05");
+    }
+  });
+
   it("rejects impossible dates and implausible ages", async () => {
     const r = await csv("name,mobile,dob,grade\nAsha Patil,9876543210,30/02/2002,A\nRavi Kumar,9876543211,01/01/2024,A\n");
     expect(r.ok).toBe(false);

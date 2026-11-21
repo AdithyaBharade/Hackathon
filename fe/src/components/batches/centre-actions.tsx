@@ -17,6 +17,8 @@ const SAMPLES = [
   { file: "candidates-with-errors.csv", label: "With mistakes: see the row errors" },
 ];
 
+const FIELD_LABEL: Record<string, string> = { name: "Name", mobile: "Mobile", dateOfBirth: "Date of birth", grade: "Grade" };
+
 /** Upload the spreadsheet (all rows or none) and send for approval. */
 export function CentreActions({ batch }: { batch: BatchDetail }) {
   const fileInput = useRef<HTMLInputElement>(null);
@@ -86,7 +88,7 @@ export function CentreActions({ batch }: { batch: BatchDetail }) {
                 {rowErrors.errors.map((e, i) => (
                   <li key={i}>
                     {e.row > 1 ? `Row ${e.row}` : "File"}
-                    {e.field ? ` · ${e.field}` : ""}: {e.message}
+                    {e.field ? ` · ${FIELD_LABEL[e.field] ?? e.field}` : ""}: {e.message}
                   </li>
                 ))}
               </ul>

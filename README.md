@@ -4,7 +4,7 @@ Training centres upload passed batches. District officers, the quality team and 
 
 - **Run it:** `docker compose up --build`, then open http://localhost:5173 and click a person. Full guide: [SETUP.md](SETUP.md)
 - **Production plan:** [DEPLOYMENT.md](DEPLOYMENT.md)
-- **Tests:** 37 integration tests against real Postgres and Redis. Run them with `docker compose --profile test run --rm tests`
+- **Tests:** 38 integration tests against real Postgres and Redis. Run them with `docker compose --profile test run --rm tests`
 
 ---
 

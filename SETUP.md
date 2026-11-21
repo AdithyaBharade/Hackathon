@@ -30,7 +30,7 @@ Compose starts Postgres, Redis, a one-shot `migrate` step (runs migrations, then
 docker compose --profile test run --rm tests
 ```
 
-This runs all 37 integration tests against a separate `certiflow_test` database in the same Postgres container, using real Redis. Expect `Tests 37 passed`.
+This runs all 38 integration tests against a separate `certiflow_test` database in the same Postgres container, using real Redis. Expect `Tests 38 passed`.
 
 ### Reset demo data
 

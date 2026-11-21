@@ -40,14 +40,22 @@ export interface RowError {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** Accepts a real Date (XLSX), YYYY-MM-DD, or DD/MM/YYYY / DD-MM-YYYY (how Indian sheets usually write it). */
+/** Two-digit years, as Excel writes them when it re-saves a CSV ("01/01/01"):
+ *  up to this year's two digits means 20xx, anything later means 19xx. */
+const expandYear = (yy: number) => (yy <= new Date().getFullYear() % 100 ? 2000 + yy : 1900 + yy);
+
+/**
+ * Accepts a real Date (XLSX), YYYY-MM-DD, or day-first DD/MM/YYYY, DD-MM-YYYY,
+ * DD.MM.YYYY and the 2-digit-year forms (how Indian sheets and Excel write them).
+ */
 const toDate = (v: unknown): Date | null => {
   if (v instanceof Date && !Number.isNaN(v.getTime())) return new Date(Date.UTC(v.getFullYear(), v.getMonth(), v.getDate()));
   const s = String(v ?? "").trim();
   let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   let y: number, mo: number, d: number;
   if (m) [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  else if ((m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/))) [d, mo, y] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  else if ((m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4}|\d{2})$/)))
+    [d, mo, y] = [Number(m[1]), Number(m[2]), m[3]!.length === 2 ? expandYear(Number(m[3])) : Number(m[3])];
   else return null;
   const date = new Date(`${y}-${pad(mo)}-${pad(d)}T00:00:00Z`);
   // Reject roll-overs like 31/02/2004
@@ -69,7 +77,7 @@ export const candidateRowSchema = z.object({
     .transform((v, c) => {
       const d = toDate(v);
       if (!d) {
-        c.addIssue({ code: "custom", message: "Date of birth must be a valid date (DD/MM/YYYY or YYYY-MM-DD)" });
+        c.addIssue({ code: "custom", message: "Date of birth must be a valid date, e.g. 15/06/2002" });
         return z.NEVER;
       }
       return d;
