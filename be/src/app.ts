@@ -24,7 +24,9 @@ app.use(
       res.setHeader("x-request-id", id);
       return id;
     },
-    autoLogging: { ignore: (req) => req.url === "/api/health" },
+    autoLogging: { ignore: (req) => req.url === "/api/health" || req.url === "/api/events" },
+    // Silence request logs in tests; errors still surface through assertions
+    enabled: env.NODE_ENV !== "test",
   })
 );
 

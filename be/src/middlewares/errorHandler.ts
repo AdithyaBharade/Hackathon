@@ -9,7 +9,7 @@ export const notFound = (req: Request, _res: Response, next: NextFunction) =>
 
 export const errorHandler = (err: unknown, req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof ApiError)
-    return res.status(err.statusCode).json({ success: false, message: err.message });
+    return res.status(err.statusCode).json({ success: false, message: err.message, errors: err.errors });
 
   if (err instanceof ZodError) {
     // `message` is the first human-readable error (shown as a toast on the FE),
@@ -22,6 +22,13 @@ export const errorHandler = (err: unknown, req: Request, res: Response, _next: N
     if (err.code === "P2002") return res.status(409).json({ success: false, message: "Record already exists" });
     if (err.code === "P2025") return res.status(404).json({ success: false, message: "Record not found" });
   }
+
+  // Body-parser / multer errors (bad JSON, file too large) are client errors
+  const status = (err as { status?: number; statusCode?: number }).status;
+  if (status && status >= 400 && status < 500)
+    return res.status(status).json({ success: false, message: (err as Error).message });
+  if ((err as { name?: string }).name === "MulterError")
+    return res.status(400).json({ success: false, message: (err as Error).message });
 
   (req.log ?? logger).error({ err }, "Unhandled error");
   return res.status(500).json({ success: false, message: "Internal server error" });

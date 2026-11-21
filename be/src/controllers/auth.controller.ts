@@ -8,12 +8,6 @@ import { tokenService } from "../services/token.service.js";
 const meta = (req: Request) => ({ userAgent: req.get("user-agent"), ip: req.ip });
 
 export const authController = {
-  register: asyncHandler(async (req, res) => {
-    const { user, tokens } = await authService.register(req.body, meta(req));
-    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
-    sendSuccess(res, { user }, 201);
-  }),
-
   login: asyncHandler(async (req, res) => {
     const { user, tokens } = await authService.login(req.body, meta(req));
     setAuthCookies(res, tokens.accessToken, tokens.refreshToken);

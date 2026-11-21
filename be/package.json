@@ -1,5 +1,5 @@
 {
-  "name": "be",
+  "name": "certiflow-api",
   "version": "1.0.0",
   "description": "",
   "main": "dist/src/server.js",
@@ -9,11 +9,17 @@
     "start": "node dist/src/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "dev:worker": "tsx watch src/worker.ts",
-    "start:worker": "node dist/src/worker.js"
+    "start:worker": "node dist/src/worker.js",
+    "dev:whatsapp": "tsx watch src/mock/whatsapp-provider.ts",
+    "start:whatsapp": "node dist/src/mock/whatsapp-provider.js",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx src/scripts/seed.ts",
+    "start:seed": "node dist/src/scripts/seed.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -26,15 +32,20 @@
     "bullmq": "^6.7.8",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "csv-parse": "^7.0.3",
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.5",
     "helmet": "^8.3.0",
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
+    "pdfkit": "^0.21.0",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
+    "qrcode": "^1.5.4",
+    "read-excel-file": "^9.3.20",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -42,11 +53,17 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.3.0",
     "@types/node": "^26.6.6",
+    "@types/pdfkit": "^0.17.7",
     "@types/pg": "^8.23.1",
+    "@types/qrcode": "^1.5.6",
+    "@types/supertest": "^7.2.1",
     "pino-pretty": "^13.2.0",
     "prisma": "^7.10.1",
+    "supertest": "^7.3.2",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
   }
 }

@@ -4,8 +4,16 @@ import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { ApiError } from "../utils/ApiError.js";
 import { signAccessToken } from "../utils/jwt.js";
+import type { Role } from "../generated/prisma/client.js";
 
 const hash = (token: string) => createHash("sha256").update(token).digest("hex");
+
+export interface TokenUser {
+  id: string;
+  role: Role;
+  districtId: string | null;
+  centreId: string | null;
+}
 
 export interface ClientMeta {
   userAgent?: string;
@@ -14,7 +22,7 @@ export interface ClientMeta {
 
 export const tokenService = {
   /** Issue a new access + refresh token pair and persist the refresh token hash. */
-  async issue(user: { id: string; role: "USER" | "ADMIN" }, meta: ClientMeta = {}) {
+  async issue(user: TokenUser, meta: ClientMeta = {}) {
     const refreshToken = randomBytes(48).toString("base64url");
     await prisma.refreshToken.create({
       data: {
@@ -25,7 +33,10 @@ export const tokenService = {
         ip: meta.ip,
       },
     });
-    return { accessToken: signAccessToken({ sub: user.id, role: user.role }), refreshToken };
+    return {
+      accessToken: signAccessToken({ sub: user.id, role: user.role, districtId: user.districtId, centreId: user.centreId }),
+      refreshToken,
+    };
   },
 
   /** Rotate: revoke the presented refresh token and issue a new pair. Detects reuse. */
@@ -34,7 +45,7 @@ export const tokenService = {
 
     const record = await prisma.refreshToken.findUnique({
       where: { tokenHash: hash(refreshToken) },
-      include: { user: { select: { id: true, role: true } } },
+      include: { user: { select: { id: true, role: true, districtId: true, centreId: true } } },
     });
     if (!record) throw new ApiError(401, "Invalid refresh token");
 
