@@ -14,11 +14,19 @@ const useOnAuthSuccess = () => {
   };
 };
 
-export const useLogin = () =>
-  useMutation({ mutationFn: authService.login, onSuccess: useOnAuthSuccess(), meta: { successMessage: "Welcome back!" } });
-
-export const useRegister = () =>
-  useMutation({ mutationFn: authService.register, onSuccess: useOnAuthSuccess(), meta: { successMessage: "Account created" } });
+export const useLogin = () => {
+  const qc = useQueryClient();
+  const onSuccess = useOnAuthSuccess();
+  return useMutation({
+    mutationFn: authService.login,
+    // Switching demo persona: never show the previous person's cached data
+    onSuccess: (data) => {
+      qc.clear();
+      onSuccess(data);
+    },
+    meta: { successMessage: "Welcome back!" },
+  });
+};
 
 /** Validates the cookie session on load (refreshes automatically via the axios interceptor). */
 export const useMe = (enabled: boolean) => {

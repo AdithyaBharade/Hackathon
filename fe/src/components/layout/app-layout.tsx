@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
-import { HomeIcon, LogOutIcon, MenuIcon, UsersIcon } from "lucide-react";
+import { AwardIcon, HomeIcon, LogOutIcon, MenuIcon, ShieldCheckIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useLiveUpdates } from "@/hooks/use-live-updates";
+import { ROLE_LABEL } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -11,8 +14,9 @@ import { APP_NAME } from "@/constants";
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { to: "/", label: "Home", icon: HomeIcon },
-  { to: "/users", label: "Users", icon: UsersIcon },
+  { to: "/", label: "Batches", icon: HomeIcon },
+  { to: "/certificates", label: "Certificates", icon: AwardIcon },
+  { to: "/verify", label: "Verify", icon: ShieldCheckIcon },
 ];
 
 function NavLinks({ onNavigate, mobile }: { onNavigate?: () => void; mobile?: boolean }) {
@@ -41,6 +45,7 @@ export function AppLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const [open, setOpen] = useState(false);
+  const live = useLiveUpdates(user?.role);
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
@@ -60,7 +65,7 @@ export function AppLayout() {
               </nav>
               <Separator />
               <div className="flex flex-col gap-2 px-4">
-                <span className="truncate text-sm text-muted-foreground">{user?.email}</span>
+                <span className="truncate text-sm text-muted-foreground">{user?.name} · {user && ROLE_LABEL[user.role]}</span>
                 <Button variant="outline" className="w-full" disabled={logout.isPending} onClick={() => logout.mutate()}>
                   <LogOutIcon className="size-4" /> Logout
                 </Button>
@@ -76,10 +81,15 @@ export function AppLayout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <span className="hidden max-w-48 truncate text-sm text-muted-foreground lg:inline">{user?.email}</span>
+            <Badge variant={live ? "secondary" : "outline"} title={live ? "Updates appear without refreshing" : "Reconnecting..."}>
+              {live ? "● Live" : "○ Offline"}
+            </Badge>
+            <span className="hidden max-w-56 truncate text-sm text-muted-foreground lg:inline">
+              {user?.name} · {user && ROLE_LABEL[user.role]}
+            </span>
             <ThemeToggle />
             <Button variant="outline" size="sm" className="hidden md:inline-flex" disabled={logout.isPending} onClick={() => logout.mutate()}>
-              <LogOutIcon className="size-4" /> Logout
+              <LogOutIcon className="size-4" /> Switch user
             </Button>
           </div>
         </div>
